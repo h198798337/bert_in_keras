@@ -4,7 +4,6 @@
 # 目前全匹配率大概是58%左右
 
 import json
-import uniout
 from keras_bert import load_trained_model_from_checkpoint, Tokenizer
 import codecs
 from keras.layers import *
@@ -16,6 +15,7 @@ from tqdm import tqdm
 import jieba
 import editdistance
 import re
+import numpy as np
 
 
 maxlen = 160
@@ -395,7 +395,7 @@ class Evaluate(Callback):
         if acc > self.best:
             self.best = acc
             train_model.save_weights('best_model.weights')
-        print 'acc: %.5f, best acc: %.5f\n' % (acc, self.best)
+        print('acc: %.5f, best acc: %.5f\n' % (acc, self.best))
     def evaluate(self):
         return evaluate(valid_data, valid_tables)
 

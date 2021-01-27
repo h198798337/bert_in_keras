@@ -7,6 +7,7 @@ from tqdm import tqdm
 from keras_bert import load_trained_model_from_checkpoint, Tokenizer
 import re, os
 import codecs
+import tensorflow as tf
 
 
 mode = 0
@@ -14,9 +15,9 @@ maxlen = 160
 learning_rate = 5e-5
 min_learning_rate = 1e-5
 
-config_path = '../bert/chinese_L-12_H-768_A-12/bert_config.json'
-checkpoint_path = '../bert/chinese_L-12_H-768_A-12/bert_model.ckpt'
-dict_path = '../bert/chinese_L-12_H-768_A-12/vocab.txt'
+config_path = '/data/home/fanqiang/dm/script/resources/chinese_L-12_H-768_A-12/bert_config.json'
+checkpoint_path = '/data/home/fanqiang/dm/script/resources/chinese_L-12_H-768_A-12/bert_model.ckpt'
+dict_path = '/data/home/fanqiang/dm/script/resources/chinese_L-12_H-768_A-12/vocab.txt'
 
 
 token_dict = {}
@@ -42,9 +43,9 @@ class OurTokenizer(Tokenizer):
 tokenizer = OurTokenizer(token_dict)
 
 
-train_data = json.load(open('../datasets/train_data_me.json'))
-dev_data = json.load(open('../datasets/dev_data_me.json'))
-id2predicate, predicate2id = json.load(open('../datasets/all_50_schemas_me.json'))
+train_data = json.load(open('/data/home/fanqiang/bert_in_keras/baidu_data/train_data_me.json'))
+dev_data = json.load(open('/data/home/fanqiang/bert_in_keras/baidu_data/dev_data_me.json'))
+id2predicate, predicate2id = json.load(open('/data/home/fanqiang/bert_in_keras/baidu_data/all_50_schemas_me.json'))
 id2predicate = {int(i):j for i,j in id2predicate.items()}
 num_classes = len(id2predicate)
 
@@ -54,16 +55,16 @@ total_data.extend(train_data)
 total_data.extend(dev_data)
 
 
-if not os.path.exists('../random_order_train_dev.json'):
-    random_order = range(len(total_data))
+if not os.path.exists('random_order_train_dev.json'):
+    random_order = list(range(len(total_data)))
     np.random.shuffle(random_order)
     json.dump(
         random_order,
-        open('../random_order_train_dev.json', 'w'),
+        open('random_order_train_dev.json', 'w'),
         indent=4
     )
 else:
-    random_order = json.load(open('../random_order_train_dev.json'))
+    random_order = json.load(open('random_order_train_dev.json'))
 
 
 train_data = [total_data[j] for i, j in enumerate(random_order) if i % 8 != mode]
@@ -139,7 +140,7 @@ class data_generator:
         return self.steps
     def __iter__(self):
         while True:
-            idxs = range(len(self.data))
+            idxs = list(range(len(self.data)))
             np.random.shuffle(idxs)
             T1, T2, S1, S2, K1, K2, O1, O2 = [], [], [], [], [], [], [], []
             for i in idxs:
@@ -166,7 +167,7 @@ class data_generator:
                     for j in items:
                         s1[j[0]] = 1
                         s2[j[1]-1] = 1
-                    k1, k2 = np.array(items.keys()).T
+                    k1, k2 = np.array(list(items.keys())).T
                     k1 = choice(k1)
                     k2 = choice(k2[k2 >= k1])
                     o1, o2 = np.zeros((len(tokens), num_classes)), np.zeros((len(tokens), num_classes))
@@ -208,7 +209,7 @@ def seq_gather(x):
     batch_idxs = K.arange(0, K.shape(seq)[0])
     batch_idxs = K.expand_dims(batch_idxs, 1)
     idxs = K.concatenate([batch_idxs, idxs], 1)
-    return K.tf.gather_nd(seq, idxs)
+    return tf.gather_nd(seq, idxs)
 
 
 bert_model = load_trained_model_from_checkpoint(config_path, checkpoint_path, seq_len=None)
@@ -341,7 +342,7 @@ class Evaluate(Callback):
         if f1 > self.best:
             self.best = f1
             train_model.save_weights('best_model.weights')
-        print 'f1: %.4f, precision: %.4f, recall: %.4f, best f1: %.4f\n' % (f1, precision, recall, self.best)
+        print('f1: %.4f, precision: %.4f, recall: %.4f, best f1: %.4f\n' % (f1, precision, recall, self.best))
     def evaluate(self):
         orders = ['subject', 'predicate', 'object']
         A, B, C = 1e-10, 1e-10, 1e-10
@@ -385,13 +386,13 @@ def test(test_data):
                 dict(zip(orders, spo + ('', ''))) for spo in R
             ]
         }, ensure_ascii=False)
-        F.write(s.encode('utf-8') + '\n')
+        F.write(s + '\n')
     F.close()
 
 
 train_D = data_generator(train_data)
 evaluator = Evaluate()
-
+test(dev_data)
 
 if __name__ == '__main__':
     train_model.fit_generator(train_D.__iter__(),

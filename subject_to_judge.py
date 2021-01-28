@@ -13,6 +13,7 @@ import codecs
 import tensorflow as tf
 import time
 import numpy as np
+import pandas as pd
 
 g_base_path = os.path.dirname(os.path.realpath(__file__))
 

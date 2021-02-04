@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Author: fanqiang
 # create date: 2021/1/28
-# Content: 
+# Content:
 # desc:
 # !/usr/bin/env python3
 # Author: fanqiang
@@ -11,7 +11,6 @@
 from keras.layers import Dense, Input, Lambda
 from keras.models import Model
 from keras.optimizers import Adam
-from keras_bert import load_trained_model_from_checkpoint, Tokenizer
 from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 import re, os
 import codecs
@@ -19,6 +18,8 @@ import tensorflow as tf
 import time
 import numpy as np
 import pandas as pd
+from bert4keras.models import build_transformer_model
+from bert4keras.tokenizers import Tokenizer, load_vocab
 
 g_base_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -39,9 +40,9 @@ def seq_padding(X, padding=0):
     ])
 
 
-config_path = '/data/home/fanqiang/dm/script/resources/chinese_L-12_H-768_A-12/bert_config.json'
-checkpoint_path = '/data/home/fanqiang/dm/script/resources/chinese_L-12_H-768_A-12/bert_model.ckpt'
-dict_path = '/data/home/fanqiang/dm/script/resources/chinese_L-12_H-768_A-12/vocab.txt'
+config_path = '/data/home/fanqiang/dm/script/resources/nezha-base/bert_config.json'
+checkpoint_path = '/data/home/fanqiang/dm/script/resources/nezha-base/model.ckpt-900000'
+dict_path = '/data/home/fanqiang/dm/script/resources/nezha-base/vocab.txt'
 token_dict = {}
 
 # 令牌器改造
@@ -67,7 +68,7 @@ class OurTokenizer(Tokenizer):
 tokenizer = OurTokenizer(token_dict)
 
 # 构造模型
-bert_model = load_trained_model_from_checkpoint(config_path, checkpoint_path, seq_len=None)
+bert_model = build_transformer_model(config_path, checkpoint_path, model='nezha')
 
 for l in bert_model.layers:
     l.trainable = True
@@ -82,7 +83,7 @@ ps1 = Dense(1, activation='sigmoid')(t)
 subject_model = Model([t1_in, t2_in], [ps1])  # 预测subject的模型
 subject_model.summary()
 
-subject_model.load_weights('/data/home/fanqiang/bert_in_keras/model/subject_model/subject_model')
+subject_model.load_weights('/data/home/fanqiang/bert_in_keras/model/subject_model_nezha/subject_model_nezha')
 
 
 def pred_result_convert(key_sentence, sentence):

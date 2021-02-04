@@ -3,11 +3,14 @@
 # create date: 2021/2/3
 # Content: 
 # desc:
-from keras.layers import Dense, Input, Lambda
-from keras.models import Model
-from keras.optimizers import Adam
-from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 import re, os
+
+os.environ.setdefault('TF_KERAS', '1')
+
+from tensorflow.keras.layers import Dense, Input, Lambda
+from tensorflow.keras.models import Model
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 import codecs
 import tensorflow as tf
 import time
@@ -15,6 +18,7 @@ import numpy as np
 import pandas as pd
 from bert4keras.models import build_transformer_model
 from bert4keras.tokenizers import Tokenizer, load_vocab
+
 
 g_base_path = os.path.dirname(os.path.realpath(__file__))
 

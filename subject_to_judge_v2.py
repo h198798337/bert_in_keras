@@ -18,7 +18,10 @@ import numpy as np
 import pandas as pd
 from bert4keras.models import build_transformer_model
 from bert4keras.tokenizers import Tokenizer, load_vocab
+from common.dingding_warn import DingDingWarn
 
+ddw = DingDingWarn('951e7381a4f2c3bd1b307ca72e47ed8e2582b76bc1ff36e541fcfb8c120884db',
+                   'SEC9deb3e4206872ae86df0e3d0f30bfdb5039421e39fb69233a7deb9a8a21f1d67')
 
 g_base_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -154,3 +157,4 @@ subject_model.fit_generator(
 subject_model.save_weights('/data/home/fanqiang/bert_in_keras/model/subject_model_nezha/subject_model_nezha')
 cost_time = time.time() - start_time
 print('cost_time:{}'.format(cost_time))
+ddw.send_warning_msg('主题模型训练任务已完成', '耗时：' + str(cost_time))
